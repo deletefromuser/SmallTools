@@ -254,8 +254,9 @@
 
         <div class="info-text">
             <strong>How it works:</strong> Upload multiple PDF files, specify how many pages (x)
-            should be combined onto a single sheet, and the app will create a merged PDF with N-up layout.
-            Default is 6 pages per sheet (2x3 grid).
+            should be combined onto a single sheet, and the app will create a merged PDF with N-up layout
+            on standard A4 pages. Default is 6 pages per sheet (2x3 grid).
+            Aspect ratio is preserved with center-scaling.
         </div>
     </div>
 
@@ -437,6 +438,10 @@
 
                 updateProgress(50);
 
+                // Standard A4 dimensions in points (210mm x 297mm)
+                const A4_WIDTH = 595.28;
+                const A4_HEIGHT = 841.89;
+
                 // Process pages in batches
                 const totalPages = allPages.length;
                 for (let batch = 0; batch < totalPages; batch += pagesPerSheet) {
@@ -466,10 +471,11 @@
 
                     if (embeddedPages.length === 0) continue;
 
-                    // Get the size of the first page as reference
-                    const { width, height } = pageSizes[0];
+                    // Use A4 dimensions for the output page
+                    const width = A4_WIDTH;
+                    const height = A4_HEIGHT;
 
-                    // Create a new page with the same dimensions
+                    // Create a new A4 page
                     const newPage = mergedPdf.addPage([width, height]);
 
                     // Zero margins for seamless tiling
