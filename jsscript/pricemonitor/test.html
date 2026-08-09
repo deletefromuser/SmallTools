@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gold Price Alert Test</title>
+    <style>
+        body {
+            max-width: 720px;
+            margin: 48px auto;
+            padding: 0 24px;
+            font-family: Arial, sans-serif;
+            color: #222;
+        }
+
+        .card {
+            padding: 24px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        #now_price {
+            margin: 16px 0;
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input,
+        button {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h1>Gold Price Alert Test</h1>
+        <p>Use the alert panel on the right to set price thresholds and start monitoring.</p>
+        <p>Current price</p>
+        <div id="now_price" aria-live="polite">920</div>
+        <p id="simulation_status">Auto simulation running</p>
+
+        <div class="controls">
+            <button id="start_simulation" type="button" disabled>Start simulation</button>
+            <button id="stop_simulation" type="button">Stop simulation</button>
+            <label for="manual_price">Manual price</label>
+            <input id="manual_price" type="number" value="920" step="0.01" disabled>
+            <button id="update_price" type="button" disabled>Update price</button>
+        </div>
+    </main>
+
+    <script src="goldfresh_v2.js"></script>
+    <script>
+        (function () {
+            const minSimulationPrice = 880;
+            const maxSimulationPrice = 965;
+            const priceStep = 5;
+            const priceElement = document.getElementById("now_price");
+            const manualPriceInput = document.getElementById("manual_price");
+            const startButton = document.getElementById("start_simulation");
+            const stopButton = document.getElementById("stop_simulation");
+            const updateButton = document.getElementById("update_price");
+            const statusElement = document.getElementById("simulation_status");
+            let currentPrice = 920;
+            let direction = 1;
+            let simulationTimer = null;
+
+            function showPrice(price) {
+                currentPrice = price;
+                priceElement.innerText = price;
+                manualPriceInput.value = price;
+            }
+
+            function simulatePrice() {
+                let nextPrice = currentPrice + priceStep * direction;
+
+                if (nextPrice > maxSimulationPrice || nextPrice < minSimulationPrice) {
+                    direction *= -1;
+                    nextPrice = currentPrice + priceStep * direction;
+                }
+
+                showPrice(nextPrice);
+            }
+
+            function setManualControls(enabled) {
+                manualPriceInput.disabled = !enabled;
+                updateButton.disabled = !enabled;
+            }
+
+            function startSimulation() {
+                if (simulationTimer) return;
+
+                setManualControls(false);
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                statusElement.innerText = "Auto simulation running";
+                simulationTimer = setInterval(simulatePrice, 1000);
+            }
+
+            function stopSimulation() {
+                if (simulationTimer) {
+                    clearInterval(simulationTimer);
+                    simulationTimer = null;
+                }
+
+                setManualControls(true);
+                startButton.disabled = false;
+                stopButton.disabled = true;
+                statusElement.innerText = "Manual price control enabled";
+            }
+
+            updateButton.onclick = function () {
+                const manualPrice = parseFloat(manualPriceInput.value);
+
+                if (!isNaN(manualPrice)) {
+                    showPrice(manualPrice);
+                }
+            };
+
+            startButton.onclick = startSimulation;
+            stopButton.onclick = stopSimulation;
+            startSimulation();
+        })();
+    </script>
+</body>
+</html>
